@@ -84,7 +84,8 @@ func (a *App) RunServer() error {
 	}
 
 	go func() {
-		if err = server.Serve(listener); err != nil && err != http.ErrServerClosed {
+		certFile, keyFile := CreateTLS()
+		if err = server.ServeTLS(listener, certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("Server error: %v", err)
 		}
 	}()
