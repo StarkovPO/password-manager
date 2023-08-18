@@ -1,0 +1,12 @@
+run:
+  skip-dirs-use-default: true
+  skip-dirs:
+    - cmd/shortener/pkg/mod
+  skip-files:
+    - ".*_test.go"
+
+linters:
+  enable-all: true
+
+output:
+  format: colored-line-number

@@ -1,10 +1,7 @@
-package main
+package app
 
 import (
 	"context"
-	"github.com/gorilla/mux"
-	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"os"
@@ -15,12 +12,20 @@ import (
 	"password-manager/internal/store"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+
+	_ "github.com/lib/pq"
 )
 
 const (
 	DBMaxOpenConnection     = 25
 	DBMaxIdleConnection     = 25
 	DBMaxConnectionLifeTime = 10 * time.Minute
+
+	DefaultTimeOut = 15 * time.Second
 )
 
 type App struct {
@@ -29,25 +34,26 @@ type App struct {
 	DB     *sqlx.DB
 }
 
-func NewApp() *App {
-	return &App{}
+func NewApp(c *config.Config) *App {
+	return &App{Conf: c}
 }
 
 func Start() error {
-	a := NewApp()
 	c := config.NewConfig()
 	c.Init()
 
-	err := a.RunServer()
-	if err != nil {
+	app := NewApp(c)
+
+	if err := app.RunServer(); err != nil {
 		logrus.Fatalf("")
+
 		return err
 	}
 
-	a.MustPostgresConnection()
-	st := store.NewStore(a.DB)
-	srv := service.NewService(st, a.Conf)
-	a.RegisterRouters(srv)
+	app.MustPostgresConnection()
+	st := store.NewStore(app.DB)
+	srv := service.NewService(st, app.Conf)
+	app.RegisterRouters(srv)
 
 	return nil
 }
@@ -58,7 +64,6 @@ func (a *App) RegisterRouters(s *service.Service) {
 }
 
 func (a *App) RunServer() error {
-
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
 	idleConnsClosed := make(chan struct{})
@@ -72,9 +77,10 @@ func (a *App) RunServer() error {
 
 	server := &http.Server{
 		Handler:           a.Router,
-		WriteTimeout:      15 * time.Second,
-		ReadTimeout:       15 * time.Second,
-		ReadHeaderTimeout: 15 * time.Second,
+		WriteTimeout:      DefaultTimeOut,
+		ReadTimeout:       DefaultTimeOut,
+		ReadHeaderTimeout: DefaultTimeOut,
+		TLSConfig:         nil,
 	}
 
 	go func() {
@@ -87,11 +93,12 @@ func (a *App) RunServer() error {
 		sig := <-cancelChan
 		logrus.Printf("Caught signal %v", sig)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
 		defer cancel()
 
 		if err := server.Shutdown(ctx); err != nil {
 			logrus.Fatalf("Server shutdown error: %v", err)
+
 			return
 		}
 		close(idleConnsClosed)

@@ -1,11 +1,13 @@
 package main
 
-import "github.com/sirupsen/logrus"
+import (
+	"password-manager/internal/app"
+
+	"github.com/sirupsen/logrus"
+)
 
 func main() {
-
-	err := Start()
-	if err != nil {
+	if err := app.Start(); err != nil {
 		logrus.Fatalf("unsuccessful initilization app: %v", err)
 	}
 }

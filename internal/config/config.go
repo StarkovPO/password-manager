@@ -19,9 +19,7 @@ func NewConfig() *Config {
 }
 
 func (c *Config) Init() {
-
 	c.RunAddressValue = os.Getenv(RunAddressKey)
 	c.DatabaseURIValue = os.Getenv(DatabaseURIKey)
 	c.AccrualSystemAddressValue = os.Getenv(AccrualSystemAddressKey)
-
 }
