@@ -77,3 +77,38 @@ func GetUserPassword(s ServiceInterface) http.HandlerFunc {
 		}
 	}
 }
+
+func UpdateUserSavedPassword(s ServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req models.NewPassword
+
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, service_errors.ErrBadRequest.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if r.Header.Get("Authorization") == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, service_errors.ErrInvalidAuthHeader.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			http.Error(w, service_errors.ErrBadRequest.Error(), http.StatusBadRequest)
+			return
+		}
+
+		req.UserID = r.Header.Get("User-ID")
+
+		err = s.UpdateUserSavedPassword(r.Context(), req)
+
+		if err != nil {
+
+			service_errors.HandleError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+
+	}
+}

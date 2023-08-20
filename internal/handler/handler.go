@@ -13,6 +13,7 @@ type ServiceInterface interface {
 	GenerateUserToken(ctx context.Context, req models.Users) (string, error)
 	SaveUserPassword(ctx context.Context, req models.Password) error
 	GetUserPassword(ctx context.Context, name, UID string) (models.Password, error)
+	UpdateUserSavedPassword(ctx context.Context, req models.NewPassword) error
 }
 
 func RegisterUser(s ServiceInterface) http.HandlerFunc {

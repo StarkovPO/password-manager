@@ -48,4 +48,6 @@ const (
 	createUserPassword = `INSERT INTO "passwords" (user_id, name, data) VALUES ($1, $2, $3)`
 
 	getUserSavedPassword = `SELECT name, data FROM passwords WHERE name = $1 AND user_id = $2 limit 1`
+
+	updateUserPassword = `UPDATE passwords SET name = $1, data = $2 WHERE name = $3 and user_id = $4`
 )

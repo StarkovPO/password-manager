@@ -16,6 +16,7 @@ type StoreInterface interface {
 	GetUserID(ctx context.Context, login string) (string, error)
 	SaveUserPasswordDB(ctx context.Context, req models.Password) error
 	GetUserPasswordDB(ctx context.Context, name, UID string) (models.Password, error)
+	UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPassword) error
 }
 
 type Service struct {
@@ -94,4 +95,16 @@ func (s *Service) GetUserPassword(ctx context.Context, name, UID string) (models
 		return models.Password{}, err
 	}
 	return res, nil
+}
+
+func (s *Service) UpdateUserSavedPassword(ctx context.Context, req models.NewPassword) error {
+	if req.NewName == "" || req.NewPassword == "" || req.OldName == "" {
+		return service_errors.ErrEmptyNameOrPassword
+	} // подумать над проверкой уже имеющихся данных
+
+	err := s.store.UpdateUserSavedPasswordDB(ctx, req)
+	if err != nil {
+		return err
+	}
+	return nil
 }

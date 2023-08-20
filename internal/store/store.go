@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const pgDuplicateCode = "23505"
+
 type Store struct {
 	store *sqlx.DB
 }
@@ -26,7 +28,7 @@ func (o *Store) CreateUserDB(ctx context.Context, user models.Users) error {
 	stmt, err := o.store.DB.PrepareContext(ctx, createUser) // check the index
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
-			if pqErr.Code == "23505" {
+			if pqErr.Code == pgDuplicateCode {
 				logrus.Warnf("user with login already exist: %v", err)
 				return service_errors.ErrLoginAlreadyExist
 			} else {
@@ -115,7 +117,7 @@ func (o *Store) SaveUserPasswordDB(ctx context.Context, req models.Password) err
 	_, err = stmt.ExecContext(ctx, req.UserID, req.Name, req.Password)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
-			if pqErr.Code == "23505" {
+			if pqErr.Code == pgDuplicateCode {
 				logrus.Info("name already exist on this user: %v", err)
 				return service_errors.ErrNameAlreadyExist
 			}
@@ -150,5 +152,35 @@ func (o *Store) GetUserPasswordDB(ctx context.Context, name, UID string) (models
 		return models.Password{}, err
 	}
 
+	if err := stmt.Close(); err != nil {
+		logrus.Warnf("attention error closing statment: %v", err)
+	}
+
 	return res, nil
+}
+
+func (o *Store) UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPassword) error {
+	stmt, err := o.store.DB.PrepareContext(ctx, updateUserPassword)
+
+	if err != nil {
+		logrus.Errorf("error with stmt: %v", err)
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, req.NewName, req.NewPassword, req.OldName, req.UserID)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == pgDuplicateCode {
+				logrus.Info("name already exist on this user: %v", err)
+				return service_errors.ErrNameAlreadyExist
+			}
+		}
+		logrus.Errorf("unhandled error: %v", err)
+		return err
+	}
+
+	if err := stmt.Close(); err != nil {
+		logrus.Warnf("attention error closing statment: %v", err)
+	}
+	return nil
 }
