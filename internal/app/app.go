@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"password-manager/internal/config"
 	"password-manager/internal/handler"
+	"password-manager/internal/middleware"
 	"password-manager/internal/service"
 	"password-manager/internal/store"
 	"syscall"
@@ -44,23 +45,37 @@ func Start() error {
 
 	app := NewApp(c)
 
+	app.MustPostgresConnection()
+	st := store.NewStore(app.DB)
+	srv := service.NewService(st, app.Conf)
+	midwr := middleware.NewMiddleware(c)
+	app.RegisterRouters(srv, midwr)
+
 	if err := app.RunServer(); err != nil {
 		logrus.Fatalf("")
 
 		return err
 	}
 
-	app.MustPostgresConnection()
-	st := store.NewStore(app.DB)
-	srv := service.NewService(st, app.Conf)
-	app.RegisterRouters(srv)
+	if err := st.MakeMigration(); err != nil {
+
+		return err
+	}
 
 	return nil
 }
 
-func (a *App) RegisterRouters(s *service.Service) {
+func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router = mux.NewRouter()
-	a.Router.HandleFunc("/api/ping", handler.Ping(s))
+	a.Router.Use(m.CheckToken)
+
+	//user handlers
+	a.Router.HandleFunc("/api/user", handler.RegisterUser(s)).Methods(http.MethodPost)
+	a.Router.HandleFunc("/api/login", handler.LoginUser(s)).Methods(http.MethodPost)
+
+	//password handlers
+	a.Router.HandleFunc("api/password", handler.SaveUserPassword(s)).Methods(http.MethodPost)
+	a.Router.HandleFunc("/api/password/{name}", handler.GetUserPassword(s)).Methods(http.MethodGet)
 }
 
 func (a *App) RunServer() error {
@@ -120,6 +135,7 @@ func (a *App) MustPostgresConnection() {
 	// Test the connection
 	err = db.Ping()
 	if err != nil {
+		panic(err)
 		defer db.Close()
 	}
 

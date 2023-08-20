@@ -1,8 +1,22 @@
 package service
 
-import "password-manager/internal/config"
+import (
+	"context"
+	"errors"
+	"github.com/dgrijalva/jwt-go"
+	"password-manager/internal/config"
+	"password-manager/internal/models"
+	"password-manager/internal/service_errors"
+	"strings"
+	"time"
+)
 
 type StoreInterface interface {
+	CreateUserDB(ctx context.Context, user models.Users) error
+	GetUserPass(ctx context.Context, login string) (string, bool)
+	GetUserID(ctx context.Context, login string) (string, error)
+	SaveUserPasswordDB(ctx context.Context, req models.Password) error
+	GetUserPasswordDB(ctx context.Context, name, UID string) (models.Password, error)
 }
 
 type Service struct {
@@ -15,4 +29,70 @@ func NewService(s StoreInterface, config *config.Config) *Service {
 		store:  s,
 		config: *config,
 	}
+}
+
+func (s *Service) CreateUser(ctx context.Context, req models.Users) (string, error) {
+	if req.Login == "" || req.Password == "" {
+		return "", service_errors.ErrBadRequest
+	}
+	req.Password = generatePasswordHash(req.Password, s.config.PasswordSecretValue)
+	req.ID = generateUID()
+
+	if err := s.store.CreateUserDB(ctx, req); err != nil { // add index to check the login
+		return "", service_errors.ErrLoginAlreadyExist
+	}
+	token := NewToken(req.ID)
+
+	return token.SignedString([]byte(s.config.SecretValue))
+}
+
+func (s *Service) GenerateUserToken(ctx context.Context, req models.Users) (string, error) {
+	passwordHash, exist := s.store.GetUserPass(ctx, req.Login)
+	if !exist {
+		return "", service_errors.ErrInvalidLoginOrPass
+	}
+
+	isPassValid := comparePasswordHash(passwordHash, req.Password, s.config.PasswordSecretValue)
+	if isPassValid {
+		UID, err := s.store.GetUserID(ctx, req.Login)
+		if err != nil {
+			return "", errors.New("error while getting UID: %v")
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
+			jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+				IssuedAt:  time.Now().Unix(),
+			},
+			UID,
+		})
+
+		return token.SignedString([]byte(s.config.SecretValue))
+	}
+	return "", service_errors.ErrInvalidLoginOrPass
+}
+
+func (s *Service) SaveUserPassword(ctx context.Context, req models.Password) error {
+
+	if req.Name == "" || strings.Trim(req.Password, " ") == "" {
+		return service_errors.ErrEmptyNameOrPassword
+	}
+	err := s.store.SaveUserPasswordDB(ctx, req)
+	if err != nil {
+		return service_errors.ErrWithDB
+	}
+	return nil
+}
+
+func (s *Service) GetUserPassword(ctx context.Context, name, UID string) (models.Password, error) {
+	if name == "" {
+		return models.Password{}, service_errors.ErrBadRequest
+	}
+
+	res, err := s.store.GetUserPasswordDB(ctx, name, UID)
+
+	if err != nil {
+		return models.Password{}, err
+	}
+	return res, nil
 }
