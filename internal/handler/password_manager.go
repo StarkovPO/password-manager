@@ -112,3 +112,27 @@ func UpdateUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 
 	}
 }
+
+func DeleteUserSavedPassword(s ServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, service_errors.ErrInvalidAuthHeader.Error(), http.StatusBadRequest)
+			return
+		}
+
+		params := mux.Vars(r)
+		if params["name"] == "" {
+			http.Error(w, service_errors.ErrBadRequest.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err := s.DeleteUserSavedPassword(r.Context(), params["name"], r.Header.Get("User-ID"))
+		if err != nil {
+			service_errors.HandleError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}

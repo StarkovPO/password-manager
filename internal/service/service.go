@@ -17,6 +17,7 @@ type StoreInterface interface {
 	SaveUserPasswordDB(ctx context.Context, req models.Password) error
 	GetUserPasswordDB(ctx context.Context, name, UID string) (models.Password, error)
 	UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPassword) error
+	DeleteUserSavedPasswordDB(ctx context.Context, name, UID string) error
 }
 
 type Service struct {
@@ -103,6 +104,18 @@ func (s *Service) UpdateUserSavedPassword(ctx context.Context, req models.NewPas
 	} // подумать над проверкой уже имеющихся данных
 
 	err := s.store.UpdateUserSavedPasswordDB(ctx, req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) DeleteUserSavedPassword(ctx context.Context, name, UID string) error {
+	if name == "" {
+		return service_errors.ErrBadRequest
+	}
+
+	err := s.store.DeleteUserSavedPasswordDB(ctx, name, UID)
 	if err != nil {
 		return err
 	}

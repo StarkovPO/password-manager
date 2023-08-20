@@ -184,3 +184,25 @@ func (o *Store) UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPas
 	}
 	return nil
 }
+
+func (o *Store) DeleteUserSavedPasswordDB(ctx context.Context, name, UID string) error {
+
+	stmt, err := o.store.DB.PrepareContext(ctx, deleteUserPassword)
+
+	if err != nil {
+		logrus.Errorf("error with stmt: %v", err)
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, name, UID)
+	if err != nil {
+		logrus.Errorf("can not delete the user's password")
+		return service_errors.ErrWithDB
+	}
+
+	if err := stmt.Close(); err != nil {
+		logrus.Warnf("attention error closing statment: %v", err)
+	}
+
+	return nil
+}

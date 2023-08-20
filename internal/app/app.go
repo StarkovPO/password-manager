@@ -77,6 +77,7 @@ func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router.HandleFunc("/api/password", handler.SaveUserPassword(s)).Methods(http.MethodPost)
 	a.Router.HandleFunc("/api/password/{name}", handler.GetUserPassword(s)).Methods(http.MethodGet)
 	a.Router.HandleFunc("/api/password", handler.UpdateUserSavedPassword(s)).Methods(http.MethodPut)
+	a.Router.HandleFunc("/api/password/{name}", handler.DeleteUserSavedPassword(s)).Methods(http.MethodDelete)
 }
 
 func (a *App) RunServer() error {

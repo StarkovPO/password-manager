@@ -50,4 +50,6 @@ const (
 	getUserSavedPassword = `SELECT name, data FROM passwords WHERE name = $1 AND user_id = $2 limit 1`
 
 	updateUserPassword = `UPDATE passwords SET name = $1, data = $2 WHERE name = $3 and user_id = $4`
+
+	deleteUserPassword = `DELETE FROM passwords WHERE name = $1 and user_id = $2`
 )
