@@ -24,8 +24,6 @@ func SaveUserPassword(s ServiceInterface) http.HandlerFunc {
 			return
 		}
 
-		ctx := r.Context()
-
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			http.Error(w, service_errors.ErrBadRequest.Error(), http.StatusBadRequest)
@@ -33,7 +31,7 @@ func SaveUserPassword(s ServiceInterface) http.HandlerFunc {
 		}
 
 		req.UserID = r.Header.Get("User-ID")
-		err = s.SaveUserPassword(ctx, req)
+		err = s.SaveUserPassword(r.Context(), req)
 
 		if err != nil {
 
@@ -46,6 +44,13 @@ func SaveUserPassword(s ServiceInterface) http.HandlerFunc {
 
 func GetUserPassword(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Header.Get("Authorization") == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, service_errors.ErrInvalidAuthHeader.Error(), http.StatusBadRequest)
+			return
+		}
+
 		params := mux.Vars(r)
 		if params["name"] == "" {
 			http.Error(w, service_errors.ErrBadRequest.Error(), http.StatusBadRequest)

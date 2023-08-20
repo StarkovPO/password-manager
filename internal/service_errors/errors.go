@@ -16,6 +16,7 @@ var (
 	ErrEmptyNameOrPassword = NewAppError(nil, "Empty name or password in JSON", "User didn't fill require fields")
 	ErrWithDB              = NewAppError(nil, "Unexpected service erorr", "DB returned unhandled error")
 	ErrPasswordNotFound    = NewAppError(nil, "Password with that name not found", "No rows returned")
+	ErrNameAlreadyExist    = NewAppError(nil, "The current name already exist in your walt, choose another", "Duplicate password name")
 )
 
 type AppError struct {

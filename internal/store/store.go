@@ -114,6 +114,12 @@ func (o *Store) SaveUserPasswordDB(ctx context.Context, req models.Password) err
 
 	_, err = stmt.ExecContext(ctx, req.UserID, req.Name, req.Password)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" {
+				logrus.Info("name already exist on this user: %v", err)
+				return service_errors.ErrNameAlreadyExist
+			}
+		}
 		logrus.Errorf("unhandled error: %v", err)
 		return err
 	}
@@ -134,7 +140,7 @@ func (o *Store) GetUserPasswordDB(ctx context.Context, name, UID string) (models
 		return models.Password{}, err
 	}
 
-	err = stmt.QueryRowContext(ctx, name, UID).Scan(&res)
+	err = stmt.QueryRowContext(ctx, name, UID).Scan(&res.Name, &res.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logrus.Info("Passwords with name doesn't exist: %v", err)

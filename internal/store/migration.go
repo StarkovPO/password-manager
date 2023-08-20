@@ -30,5 +30,9 @@ func (o *Store) MakeMigration() error {
 		return fmt.Errorf("error while run migrations %v", err)
 	}
 
+	if _, err := o.store.DB.Exec(createIDNameFileIndex); err != nil {
+		return fmt.Errorf("error while run migrations %v", err)
+	}
+
 	return nil
 }

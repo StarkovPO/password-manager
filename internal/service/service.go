@@ -7,7 +7,6 @@ import (
 	"password-manager/internal/config"
 	"password-manager/internal/models"
 	"password-manager/internal/service_errors"
-	"strings"
 	"time"
 )
 
@@ -73,8 +72,8 @@ func (s *Service) GenerateUserToken(ctx context.Context, req models.Users) (stri
 }
 
 func (s *Service) SaveUserPassword(ctx context.Context, req models.Password) error {
+	if req.Name == "" {
 
-	if req.Name == "" || strings.Trim(req.Password, " ") == "" {
 		return service_errors.ErrEmptyNameOrPassword
 	}
 	err := s.store.SaveUserPasswordDB(ctx, req)

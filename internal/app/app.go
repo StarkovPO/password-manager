@@ -51,13 +51,13 @@ func Start() error {
 	midwr := middleware.NewMiddleware(c)
 	app.RegisterRouters(srv, midwr)
 
-	if err := app.RunServer(); err != nil {
-		logrus.Fatalf("")
+	if err := st.MakeMigration(); err != nil {
 
 		return err
 	}
 
-	if err := st.MakeMigration(); err != nil {
+	if err := app.RunServer(); err != nil {
+		logrus.Fatalf("")
 
 		return err
 	}
@@ -74,7 +74,7 @@ func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router.HandleFunc("/api/login", handler.LoginUser(s)).Methods(http.MethodPost)
 
 	//password handlers
-	a.Router.HandleFunc("api/password", handler.SaveUserPassword(s)).Methods(http.MethodPost)
+	a.Router.HandleFunc("/api/password", handler.SaveUserPassword(s)).Methods(http.MethodPost)
 	a.Router.HandleFunc("/api/password/{name}", handler.GetUserPassword(s)).Methods(http.MethodGet)
 }
 

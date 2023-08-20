@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"password-manager/internal/config"
 	"password-manager/internal/service"
+	"strings"
 )
 
 type Middleware struct {
@@ -24,7 +25,8 @@ func (m *Middleware) CheckToken(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		UID, err := m.parseToken(token)
+		tokenTrim := strings.TrimPrefix(token, "Bearer ")
+		UID, err := m.parseToken(tokenTrim)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
