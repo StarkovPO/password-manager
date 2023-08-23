@@ -17,9 +17,10 @@ const (
 )
 
 type User struct {
-	client    http.Client
-	Token     string
-	Passwords map[string]string
+	client        http.Client
+	Token         string
+	Passwords     map[string]string
+	EncryptionKey []byte
 }
 
 type UserData struct {
@@ -32,14 +33,16 @@ type UserPass struct {
 	Password string `json:"password"`
 }
 
-func NewUser() *User {
+func NewUser(EncryptionKey []byte) *User {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	}
-	return &User{client: http.Client{Transport: tr}}
+	return &User{
+		client:        http.Client{Transport: tr},
+		EncryptionKey: EncryptionKey}
 }
 
 func (u *User) SignUp(username, password string) (string, error) {
@@ -107,17 +110,25 @@ func (u *User) Login(username, password string) (string, error) {
 
 }
 
-func (u *User) Request(method, endpoint string, body interface{}) (interface{}, error) {
+func (u *User) Request(method, endpoint string, data interface{}) (interface{}, error) {
 	url := BaseURL + endpoint
 
-	var requestBody []byte
-	if body != nil {
-		requestBody, _ = json.Marshal(body)
-	}
+	req, err := http.NewRequest(method, url, http.NoBody)
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil, err
+	if method == http.MethodDelete || method == http.MethodGet {
+
+		req.URL.Path = url + "/" + data.(string)
+
+	} else {
+		var requestBody []byte
+		if data != nil {
+			requestBody, _ = json.Marshal(data)
+		}
+
+		req, err = http.NewRequest(method, url, bytes.NewBuffer(requestBody))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	req.Header.Set("Authorization", "Bearer "+u.Token)
@@ -140,12 +151,12 @@ func (u *User) Request(method, endpoint string, body interface{}) (interface{}, 
 
 	if method == http.MethodGet {
 		var res UserPass
-		err := json.Unmarshal(requestBody, &res)
+		err := json.Unmarshal(respBody, &res)
 
 		if err != nil {
 			return nil, err
 		}
-		return res, nil
+		return res.Password, nil
 	}
 
 	return nil, nil

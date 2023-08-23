@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	cipher_client "client-password/internal/cipher"
 	"client-password/internal/client"
 	"fmt"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	savePasswordEndpoint = `/api/password`
+	PasswordEndpoint = `/api/password`
 )
 
 func RunCommands(user client.User) {
@@ -44,7 +45,7 @@ func RunCommands(user client.User) {
 			password := parts[2]
 			token, err := user.SignUp(login, password)
 			if err != nil {
-				fmt.Printf("Error: %s", err)
+				fmt.Printf("Error: %s \n", err)
 				continue
 			}
 			user.Token = token
@@ -71,14 +72,41 @@ func RunCommands(user client.User) {
 				fmt.Println("Remove all spaces from name of password and password. Try again")
 				continue
 			}
-			req := client.UserPass{
-				Name:     parts[1],
-				Password: parts[2],
+
+			encryptedPass, err := cipher_client.Encrypt(parts[2], user.EncryptionKey)
+			if err != nil {
+				fmt.Errorf("unexpected error while cipher the password: %s \n", err)
 			}
 
-			_, err := user.Request(http.MethodPost, savePasswordEndpoint, req)
+			req := client.UserPass{
+				Name:     parts[1],
+				Password: encryptedPass,
+			}
+
+			_, err = user.Request(http.MethodPost, PasswordEndpoint, req)
 			if err == nil {
-				fmt.Print("Your password saved success")
+				fmt.Println("Your password saved success")
+				continue
+			}
+			fmt.Printf("Error: %s \n", err)
+			continue
+		case "get-pass":
+			if len(parts) != 2 {
+				fmt.Println("Usage: get-pass <name_pass>")
+				fmt.Println("Remove all spaces from name of password. Try again")
+				continue
+			}
+
+			res, err := user.Request(http.MethodGet, PasswordEndpoint, parts[1])
+
+			if err != nil {
+				fmt.Printf("Error: %s", err)
+				continue
+			}
+
+			decryptedPass, err := cipher_client.Decrypt(res.(string), user.EncryptionKey)
+			if err == nil {
+				fmt.Printf("Your password: %s\n", decryptedPass)
 				continue
 			}
 			fmt.Printf("Error: %s \n", err)
