@@ -20,7 +20,7 @@ const (
 			"primary_id" SERIAL PRIMARY KEY,
 			"user_id" varchar(36),
 			"name" varchar(255) NOT NULL ,
-			"data" varchar(2048) NOT NULL 
+			"data" BYTE NOT NULL 
 )
 `
 
