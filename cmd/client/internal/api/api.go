@@ -90,6 +90,31 @@ func RunCommands(user *client.User) {
 			}
 			fmt.Printf("Error: %s \n", err)
 			continue
+		case "change-pass":
+			if len(parts) != 4 {
+				fmt.Println("Usage: change-pass <new_name_pass> <new_pass> <old_name_pass>")
+				fmt.Println("Remove all spaces from name of passwords and password. Try again")
+				continue
+			}
+
+			encryptedPass, err := cipher_client.Encrypt(parts[2], user.EncryptionKey)
+			if err != nil {
+				fmt.Errorf("unexpected error while cipher the password: %s \n", err)
+			}
+
+			req := client.NewUserPass{
+				NewName: parts[1],
+				NewPass: encryptedPass,
+				OldName: parts[3],
+			}
+
+			_, err = user.Request(http.MethodPut, PasswordEndpoint, req)
+			if err == nil {
+				fmt.Println("Your password saved success")
+				continue
+			}
+			fmt.Printf("Error: %s \n", err)
+			continue
 		case "get-pass":
 			if len(parts) != 2 {
 				fmt.Println("Usage: get-pass <name_pass>")
@@ -111,9 +136,30 @@ func RunCommands(user *client.User) {
 			}
 			fmt.Printf("Error: %s \n", err)
 			continue
+		case "del-pass":
+			if len(parts) != 2 {
+				fmt.Println("Usage: del-pass <name_pass>")
+				fmt.Println("Remove all spaces from name of password. Try again")
+				continue
+			}
 
+			_, err := user.Request(http.MethodDelete, PasswordEndpoint, parts[1])
+
+			if err != nil {
+				fmt.Printf("Error: %s", err)
+				continue
+			}
+
+			if err == nil {
+				fmt.Println("Password delete successfully")
+				continue
+			}
+			fmt.Printf("Error: %s \n", err)
+			continue
+		case "help":
+			fmt.Println("Unknown command. Available commands: sign-up, login, save-pass, get-pass, del-pass, change-pass, help, q")
 		default:
-			fmt.Println("Unknown command. Available commands: sign-up, login, save-pass, q")
+			fmt.Println("Unknown command. Available commands: sign-up, login, save-pass, get-pass, del-pass, change-pass, q")
 		}
 	}
 }

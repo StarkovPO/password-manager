@@ -33,6 +33,12 @@ type UserPass struct {
 	Password string `json:"password"`
 }
 
+type NewUserPass struct {
+	NewName string `json:"new_name"`
+	NewPass string `json:"new_pass"`
+	OldName string `json:"old_name"`
+}
+
 func NewUser(EncryptionKey []byte) *User {
 
 	tr := &http.Transport{
