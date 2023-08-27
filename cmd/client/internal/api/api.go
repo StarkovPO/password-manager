@@ -14,7 +14,7 @@ const (
 	PasswordEndpoint = `/api/password`
 )
 
-func RunCommands(user client.User) {
+func RunCommands(user *client.User) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 

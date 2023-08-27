@@ -5,7 +5,14 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 func GenerateEncryptionKey() ([]byte, error) {
@@ -63,4 +70,105 @@ func Decrypt(cipherText string, key []byte) (string, error) {
 	}
 
 	return string(plainText), nil
+}
+
+func GetUserPath() (string, error) {
+	keyFilePath := ""
+	homeDir, err := os.UserHomeDir()
+
+	if err != nil {
+		fmt.Println("Error getting user's home directory:", err)
+		return "", err
+	}
+
+	switch runtime.GOOS {
+	case "windows":
+		keyFilePath = filepath.Join(homeDir, "AppData", "Roaming", "password-saver", "encryption.json")
+	case "darwin":
+		keyFilePath = filepath.Join(homeDir, "password-saver", "encryption.json")
+	default:
+		keyFilePath = filepath.Join(homeDir, "password-saver", "encryption.json")
+	}
+
+	if exist := checkDirAndCreate(keyFilePath); !exist {
+		fmt.Errorf("unhandler error while create the file")
+		return "", errors.New("error while create the file")
+	}
+
+	return keyFilePath, nil
+}
+
+func checkDirAndCreate(path string) bool {
+
+	p := strings.TrimSuffix(path, "/encryption.json")
+
+	_, err := os.Stat(p)
+	if err == nil {
+		return true
+	} else if os.IsNotExist(err) {
+		err = os.Mkdir(p, 0755)
+		if err != nil {
+			fmt.Println("Error creating directory:", err)
+			return false
+		}
+	}
+	return true
+}
+
+func SaveEncryptedKey(userID string, key []byte) error {
+
+	f, err := GetUserPath()
+	if err != nil {
+		return err
+	}
+
+	p, err := NewProducer(f)
+	if err != nil {
+		return err
+	}
+
+	err = p.WriteFile(userID, key)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadEncryptedKey() (map[string]string, error) {
+	UserKeys := make(map[string]string)
+	f, err := GetUserPath()
+
+	if err != nil {
+		return nil, err
+	}
+	c, err := NewConsumer(f)
+
+	if err != nil {
+		return nil, err
+	}
+
+	type tmp struct {
+		UID string `json:"UID"`
+		Key string `json:"Key"`
+	}
+
+	b, err := c.ReadFile()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []tmp
+
+	err = json.Unmarshal(b, &result)
+
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range result {
+		UserKeys[v.UID] = v.Key
+	}
+
+	return UserKeys, nil
 }
