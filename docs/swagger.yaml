@@ -1,5 +1,26 @@
 basePath: /api
 definitions:
+  models.NewPassword:
+    properties:
+      new_name:
+        type: string
+      new_password:
+        type: string
+      old_name:
+        type: string
+    type: object
+  models.Password:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  models.PasswordName:
+    properties:
+      name:
+        type: string
+    type: object
   models.Users:
     properties:
       login:
@@ -21,6 +42,233 @@ info:
   title: Password-manager API
   version: 1.0.0
 paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: login user in password manager
+      operationId: login-account
+      parameters:
+      - description: Login the user with login and password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Users'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      summary: Login User
+      tags:
+      - Auth
+  /api/password:
+    post:
+      consumes:
+      - application/json
+      description: save your password
+      operationId: save-pass
+      parameters:
+      - description: Creat the user with login and password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Password'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Save Password
+      tags:
+      - Password
+    put:
+      consumes:
+      - application/json
+      description: change your password by name
+      operationId: change-pass
+      parameters:
+      - description: Change the saved password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewPassword'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Change saved Password
+      tags:
+      - Password
+  /api/password/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: delete your saved password
+      operationId: del-pass
+      parameters:
+      - description: Delete password by your name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Password
+      tags:
+      - Password
+    get:
+      consumes:
+      - application/json
+      description: get your saved password
+      operationId: get-pass
+      parameters:
+      - description: Search password by your name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Password'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Password
+      tags:
+      - Password
+  /api/password/all:
+    get:
+      consumes:
+      - application/json
+      description: get all nname of your saved password
+      operationId: get-pass-all
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PasswordName'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all names of your passwords
+      tags:
+      - Password
   /api/user:
     post:
       consumes:

@@ -8,6 +8,19 @@ import (
 	"password-manager/internal/service_errors"
 )
 
+// @Summary Save Password
+// @tags Password
+// @Description save your password
+// @Security ApiKeyAuth
+// @ID save-pass
+// @Accept json
+// @Produce json
+// @Param body body models.Password true "Creat the user with login and password"
+// @Success 201
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/password [post]
 func SaveUserPassword(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -42,6 +55,19 @@ func SaveUserPassword(s ServiceInterface) http.HandlerFunc {
 	}
 }
 
+// @Summary Get Password
+// @tags Password
+// @Description get your saved password
+// @Security ApiKeyAuth
+// @ID get-pass
+// @Accept json
+// @Produce json
+// @Param name path string true "Search password by your name"
+// @Success 200 {object} models.Password
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/password/{name} [get]
 func GetUserPassword(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -79,6 +105,19 @@ func GetUserPassword(s ServiceInterface) http.HandlerFunc {
 	}
 }
 
+// @Summary Change saved Password
+// @tags Password
+// @Description change your password by name
+// @Security ApiKeyAuth
+// @ID change-pass
+// @Accept json
+// @Produce json
+// @Param body body models.NewPassword true "Change the saved password"
+// @Success 202
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/password [put]
 func UpdateUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req models.NewPassword
@@ -115,6 +154,19 @@ func UpdateUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 	}
 }
 
+// @Summary Delete Password
+// @tags Password
+// @Description delete your saved password
+// @Security ApiKeyAuth
+// @ID del-pass
+// @Accept json
+// @Produce json
+// @Param name path string true "Delete password by your name"
+// @Success 204
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/password/{name} [delete]
 func DeleteUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") == "" {
@@ -139,6 +191,18 @@ func DeleteUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 	}
 }
 
+// @Summary Get all names of your passwords
+// @tags Password
+// @Description get all nname of your saved password
+// @Security ApiKeyAuth
+// @ID get-pass-all
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.PasswordName
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/password/all [get]
 func GetAllUserPasswords(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") == "" {

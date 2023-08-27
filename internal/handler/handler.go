@@ -57,6 +57,18 @@ func RegisterUser(s ServiceInterface) http.HandlerFunc {
 	}
 }
 
+// @Summary Login User
+// @tags Auth
+// @Description login user in password manager
+// @ID login-account
+// @Accept json
+// @Produce json
+// @Param input body models.Users true "Login the user with login and password"
+// @Success 200
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/login [post]
 func LoginUser(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
