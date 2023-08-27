@@ -20,7 +20,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	_ "github.com/lib/pq"
-	_ "github.com/starkovPO/password-manager/docs"
 	_ "github.com/swaggo/http-swagger"
 )
 
