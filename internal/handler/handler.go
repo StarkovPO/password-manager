@@ -15,6 +15,7 @@ type ServiceInterface interface {
 	GetUserPassword(ctx context.Context, name, UID string) (models.Password, error)
 	UpdateUserSavedPassword(ctx context.Context, req models.NewPassword) error
 	DeleteUserSavedPassword(ctx context.Context, name, UID string) error
+	GetAllUserPasswords(ctx context.Context, UID string) ([]models.PasswordName, error)
 }
 
 func RegisterUser(s ServiceInterface) http.HandlerFunc {

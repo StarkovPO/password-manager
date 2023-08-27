@@ -12,3 +12,7 @@ type NewPassword struct {
 	OldName     string `json:"old_name"`
 	UserID      string `json:"-"`
 }
+
+type PasswordName struct {
+	Name string `json:"name" db:"name"`
+}

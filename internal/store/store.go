@@ -206,3 +206,39 @@ func (o *Store) DeleteUserSavedPasswordDB(ctx context.Context, name, UID string)
 
 	return nil
 }
+
+func (o *Store) GetAllUserPasswordDB(ctx context.Context, UID string) ([]models.PasswordName, error) {
+
+	var passwords []models.PasswordName
+	var pass models.PasswordName
+
+	stmt, err := o.store.DB.PrepareContext(ctx, getAllUserSavedPassword)
+
+	if err != nil {
+		logrus.Errorf("error with stmt: %v", err)
+		return nil, err
+	}
+
+	rows, err := stmt.QueryContext(ctx, UID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logrus.Info("Passwords for current user not found: %v", err)
+			return nil, service_errors.ErrPasswordNotFound
+		}
+		logrus.Errorf("unhandled error: %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&pass.Name)
+		if err != nil {
+			return nil, err
+		}
+		passwords = append(passwords, pass)
+	}
+
+	return passwords, nil
+}

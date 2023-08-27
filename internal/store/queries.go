@@ -43,6 +43,8 @@ const (
 
 	getUserPass = `SELECT password_hash FROM users WHERE login = $1 LIMIT 1`
 
+	getAllUserSavedPassword = `SELECT name FROM passwords WHERE user_id = $1`
+
 	getUserID = `SELECT id FROM users WHERE login = $1`
 
 	createUserPassword = `INSERT INTO "passwords" (user_id, name, data) VALUES ($1, $2, $3)`

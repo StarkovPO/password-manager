@@ -49,6 +49,7 @@ func (e *AppError) Marshal() []byte {
 }
 
 func HandleError(w http.ResponseWriter, err error) {
+	w.Header().Add("Content-Type", "application/json")
 	switch {
 	case errors.Is(err, ErrBadRequest):
 		http.Error(w, ErrBadRequest.Error(), http.StatusBadRequest)
@@ -64,6 +65,8 @@ func HandleError(w http.ResponseWriter, err error) {
 		http.Error(w, ErrWithDB.Error(), http.StatusUnprocessableEntity)
 	case errors.Is(err, ErrEmptyNameOrPassword):
 		http.Error(w, ErrEmptyNameOrPassword.Error(), http.StatusConflict)
+	case errors.Is(err, ErrPasswordNotFound):
+		http.Error(w, ErrPasswordNotFound.Error(), http.StatusNotFound)
 	default:
 		logrus.Errorf("Unhandled error: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

@@ -17,6 +17,15 @@ func NewMiddleware(c *config.Config) *Middleware {
 	return &Middleware{c: *c}
 }
 
+func (m *Middleware) SetJSONResponse(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if t := w.Header().Get("Content-Type"); t != "application/json" {
+			w.Header().Add("Content-Type", "application/json")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (m *Middleware) CheckToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

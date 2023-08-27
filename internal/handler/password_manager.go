@@ -60,6 +60,7 @@ func GetUserPassword(s ServiceInterface) http.HandlerFunc {
 		pas, err := s.GetUserPassword(r.Context(), params["name"], r.Header.Get("User-ID"))
 
 		if err != nil {
+			w.Header().Set("Content-type", "application/json")
 			service_errors.HandleError(w, err)
 			return
 		}
@@ -108,6 +109,7 @@ func UpdateUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 			service_errors.HandleError(w, err)
 			return
 		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 
 	}
@@ -134,5 +136,32 @@ func DeleteUserSavedPassword(s ServiceInterface) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func GetAllUserPasswords(s ServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, service_errors.ErrInvalidAuthHeader.Error(), http.StatusBadRequest)
+			return
+		}
+
+		pass, err := s.GetAllUserPasswords(r.Context(), r.Header.Get("User-ID"))
+
+		if err != nil {
+			w.Header().Set("Content-type", "application/json")
+			service_errors.HandleError(w, err)
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+		err = json.NewEncoder(w).Encode(&pass)
+
+		if err != nil {
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
+
 	}
 }

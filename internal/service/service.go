@@ -18,6 +18,7 @@ type StoreInterface interface {
 	GetUserPasswordDB(ctx context.Context, name, UID string) (models.Password, error)
 	UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPassword) error
 	DeleteUserSavedPasswordDB(ctx context.Context, name, UID string) error
+	GetAllUserPasswordDB(ctx context.Context, UID string) ([]models.PasswordName, error)
 }
 
 type Service struct {
@@ -120,4 +121,13 @@ func (s *Service) DeleteUserSavedPassword(ctx context.Context, name, UID string)
 		return err
 	}
 	return nil
+}
+
+func (s *Service) GetAllUserPasswords(ctx context.Context, UID string) ([]models.PasswordName, error) {
+
+	pass, err := s.store.GetAllUserPasswordDB(ctx, UID)
+	if err != nil {
+		return nil, err
+	}
+	return pass, nil
 }
