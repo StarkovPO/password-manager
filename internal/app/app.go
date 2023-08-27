@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net"
 	"net/http"
 	"os"
@@ -19,6 +20,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	_ "github.com/lib/pq"
+	_ "github.com/starkovPO/password-manager/docs"
+	_ "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -68,6 +71,13 @@ func Start() error {
 func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router = mux.NewRouter()
 	a.Router.Use(m.SetJSONResponse, m.CheckToken)
+
+	//swagger
+	a.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("https://localhost:8080/swagger/doc.json"),
+	))
+	//a.Router.HandleFunc("/swagger/*", httpSwagger.Handler(
+	//	httpSwagger.URL("/swagger/doc.json")))
 
 	//user handlers
 	a.Router.HandleFunc("/api/user", handler.RegisterUser(s)).Methods(http.MethodPost)

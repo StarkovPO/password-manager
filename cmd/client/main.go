@@ -11,7 +11,20 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var buildVersion string
+var buildDate string
+
 func main() {
+
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+
+	fmt.Printf("password-keepre version: %s, buidl date: %s \n", buildVersion, buildDate)
+
 	key, err := cipher_client.GenerateEncryptionKey()
 
 	if err != nil {

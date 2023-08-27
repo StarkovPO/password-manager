@@ -18,6 +18,18 @@ type ServiceInterface interface {
 	GetAllUserPasswords(ctx context.Context, UID string) ([]models.PasswordName, error)
 }
 
+// @Summary Create User
+// @tags Auth
+// @Description register user in password manager
+// @ID create-account
+// @Accept json
+// @Produce json
+// @Param input body models.Users true "Creat the user with login and password"
+// @Success 200
+// @Failure 400,409 {object} service_errors.AppError
+// @Failure 500 {object} service_errors.AppError
+// @Failure default {object} service_errors.AppError
+// @Router /api/user [post]
 func RegisterUser(s ServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 

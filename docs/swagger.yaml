@@ -1,0 +1,66 @@
+basePath: /api
+definitions:
+  models.Users:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  service_errors.AppError:
+    properties:
+      dev_msg:
+        type: string
+      msg:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API server for password-manager CLI
+  title: Password-manager API
+  version: 1.0.0
+paths:
+  /api/user:
+    post:
+      consumes:
+      - application/json
+      description: register user in password manager
+      operationId: create-account
+      parameters:
+      - description: Creat the user with login and password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Users'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service_errors.AppError'
+      summary: Create User
+      tags:
+      - Auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
