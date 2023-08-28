@@ -41,7 +41,8 @@ func main() {
 		return scheduler.UserTokenScheduler(ctx, User)
 	})
 
-	fmt.Println("Interactive client started. Enter 'q' or 'quit' to exit.")
+	fmt.Println("Interactive client started. Enter 'q' to exit. \n " +
+		"Enter help to see the description of all commands")
 
 	api.RunCommands(User)
 
