@@ -5,3 +5,7 @@ type Users struct {
 	Login    string `json:"login" binding:"require" db:"login"`
 	Password string `json:"password" binding:"require" db:"password_hash"`
 }
+
+type UserKey struct {
+	Key string `json:"key"`
+}

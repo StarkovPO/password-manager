@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	cipher_client "password-manager/internal/cipher"
 	"password-manager/internal/config"
 	"password-manager/internal/models"
 	"password-manager/internal/service_errors"
 	"time"
 )
 
+// StoreInterface is interface for store module
 type StoreInterface interface {
 	CreateUserDB(ctx context.Context, user models.Users) error
 	GetUserPass(ctx context.Context, login string) (string, bool)
@@ -19,13 +21,17 @@ type StoreInterface interface {
 	UpdateUserSavedPasswordDB(ctx context.Context, req models.NewPassword) error
 	DeleteUserSavedPasswordDB(ctx context.Context, name, UID string) error
 	GetAllUserPasswordDB(ctx context.Context, UID string) ([]models.PasswordName, error)
+	SaveUserKey(ctx context.Context, UID string, key string) error
+	GetUserKey(ctx context.Context, UID string) (string, error)
 }
 
+// Service struct for service
 type Service struct {
 	store  StoreInterface
 	config config.Config
 }
 
+// NewService create new service
 func NewService(s StoreInterface, config *config.Config) *Service {
 	return &Service{
 		store:  s,
@@ -33,6 +39,12 @@ func NewService(s StoreInterface, config *config.Config) *Service {
 	}
 }
 
+/*
+CreateUser create new user. Return token and error.
+Accept the object type of models.Users
+Generate password hash for user and save in DB
+Generate UID for user and save in DB
+*/
 func (s *Service) CreateUser(ctx context.Context, req models.Users) (string, error) {
 	if req.Login == "" || req.Password == "" {
 		return "", service_errors.ErrBadRequest
@@ -48,6 +60,13 @@ func (s *Service) CreateUser(ctx context.Context, req models.Users) (string, err
 	return token.SignedString([]byte(s.config.SecretValue))
 }
 
+/*
+	GenerateUserToken generate user token. Used for auth users
+
+Hash users password and compare with DB hash password
+Gets user ID and generate token
+Accept the object type of models.Users
+*/
 func (s *Service) GenerateUserToken(ctx context.Context, req models.Users) (string, error) {
 	passwordHash, exist := s.store.GetUserPass(ctx, req.Login)
 	if !exist {
@@ -74,6 +93,10 @@ func (s *Service) GenerateUserToken(ctx context.Context, req models.Users) (stri
 	return "", service_errors.ErrInvalidLoginOrPass
 }
 
+/*
+SaveUserPassword save user password from request
+Accept the object type of models.Password
+*/
 func (s *Service) SaveUserPassword(ctx context.Context, req models.Password) error {
 	if req.Name == "" {
 
@@ -86,6 +109,11 @@ func (s *Service) SaveUserPassword(ctx context.Context, req models.Password) err
 	return nil
 }
 
+/*
+GetUserPassword get user password from DB
+Accept the object type of models.Password
+Return encrypted user password
+*/
 func (s *Service) GetUserPassword(ctx context.Context, name, UID string) (models.Password, error) {
 	if name == "" {
 		return models.Password{}, service_errors.ErrBadRequest
@@ -99,6 +127,11 @@ func (s *Service) GetUserPassword(ctx context.Context, name, UID string) (models
 	return res, nil
 }
 
+/*
+UpdateUserSavedPassword update user password from DB
+Accept the object type of models.NewPassword
+Return error
+*/
 func (s *Service) UpdateUserSavedPassword(ctx context.Context, req models.NewPassword) error {
 	if req.NewName == "" || req.NewPassword == "" || req.OldName == "" {
 		return service_errors.ErrEmptyNameOrPassword
@@ -111,6 +144,11 @@ func (s *Service) UpdateUserSavedPassword(ctx context.Context, req models.NewPas
 	return nil
 }
 
+/*
+DeleteUserSavedPassword delete user password from DB
+Accept the object type of models.NewPassword
+Return error
+*/
 func (s *Service) DeleteUserSavedPassword(ctx context.Context, name, UID string) error {
 	if name == "" {
 		return service_errors.ErrBadRequest
@@ -123,6 +161,11 @@ func (s *Service) DeleteUserSavedPassword(ctx context.Context, name, UID string)
 	return nil
 }
 
+/*
+GetAllUserPasswords get all user password names from DB
+Accept the object type of models.Password
+Return array of users password names
+*/
 func (s *Service) GetAllUserPasswords(ctx context.Context, UID string) ([]models.PasswordName, error) {
 
 	pass, err := s.store.GetAllUserPasswordDB(ctx, UID)
@@ -130,4 +173,36 @@ func (s *Service) GetAllUserPasswords(ctx context.Context, UID string) ([]models
 		return nil, err
 	}
 	return pass, nil
+}
+
+func (s *Service) GetUserKey(ctx context.Context, UID string) (string, error) {
+	key, err := s.store.GetUserKey(ctx, UID)
+	if err != nil {
+		return "", err
+	}
+	if key != "" {
+		decryptedKey, err := cipher_client.Decrypt(key, []byte(s.config.PasswordSecretValue))
+		if err != nil {
+			return "", err
+		}
+
+		return decryptedKey, nil
+	}
+	return "", nil
+}
+
+func (s *Service) SaveUserKey(ctx context.Context, UID string, key string) error {
+
+	encryptedKey, err := cipher_client.Encrypt(key, []byte(s.config.PasswordSecretValue))
+
+	if err != nil {
+		return err
+	}
+
+	err = s.store.SaveUserKey(ctx, UID, encryptedKey)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

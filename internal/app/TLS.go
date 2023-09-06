@@ -15,6 +15,9 @@ import (
 	"time"
 )
 
+/*
+CreateTLS function create TLS certificate
+*/
 func CreateTLS() (string, string) {
 
 	cert := &x509.Certificate{
