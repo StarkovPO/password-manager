@@ -35,8 +35,12 @@ type UserPass struct {
 
 type NewUserPass struct {
 	NewName string `json:"new_name"`
-	NewPass string `json:"new_pass"`
+	NewPass string `json:"new_password"`
 	OldName string `json:"old_name"`
+}
+
+type PasswordName struct {
+	Name string `json:"name"`
 }
 
 func NewUser(EncryptionKey []byte) *User {
@@ -116,10 +120,50 @@ func (u *User) Login(username, password string) (string, error) {
 
 }
 
+func (u *User) GetAllPass() ([]PasswordName, error) {
+	url := BaseURL + "/api/password/all"
+
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+u.Token)
+
+	resp, err := u.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("Request failed with status: %d - %s", resp.StatusCode, string(respBody))
+	}
+
+	var res []PasswordName
+	err = json.Unmarshal(respBody, &res)
+
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+
+}
+
 func (u *User) Request(method, endpoint string, data interface{}) (interface{}, error) {
 	url := BaseURL + endpoint
 
 	req, err := http.NewRequest(method, url, http.NoBody)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if method == http.MethodDelete || method == http.MethodGet {
 

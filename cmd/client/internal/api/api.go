@@ -156,8 +156,27 @@ func RunCommands(user *client.User) {
 			}
 			fmt.Printf("Error: %s \n", err)
 			continue
+		case "get-all-pass":
+			result, err := user.GetAllPass()
+			if err != nil {
+				fmt.Printf("Error: %s", err)
+				continue
+			}
+
+			for k, v := range result {
+				fmt.Printf("name %d: %s \n", k+1, v.Name)
+			}
+
+			continue
+
 		case "help":
-			fmt.Println("Unknown command. Available commands: sign-up, login, save-pass, get-pass, del-pass, change-pass, help, q")
+			fmt.Println("List of commands: sign-up sign-up <username> <pass>")
+			fmt.Println("login sign-up <username> <pass>")
+			fmt.Println("save-pass <name_pass> <pass>")
+			fmt.Println("change-pass <new_name_pass> <new_pass> <old_name_pass>")
+			fmt.Println("get-pass <name_pass>")
+			fmt.Println("del-pass <name_pass>")
+			fmt.Println("get-all-pass")
 		default:
 			fmt.Println("Unknown command. Available commands: sign-up, login, save-pass, get-pass, del-pass, change-pass, q")
 		}
