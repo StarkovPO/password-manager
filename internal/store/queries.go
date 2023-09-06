@@ -23,6 +23,11 @@ const (
 			"data" BYTE NOT NULL 
 )
 `
+	createUserKeyTable = `CREATE TABLE IF NOT EXISTS "keys" (
+		"primary_id" SERIAL PRIMARY KEY,
+		"user_id" varchar(36),
+		"key" varchar(255)
+	)`
 
 	createPasswordForeignKey = `ALTER TABLE "passwords" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
@@ -54,4 +59,8 @@ const (
 	updateUserPassword = `UPDATE passwords SET name = $1, data = $2 WHERE name = $3 and user_id = $4`
 
 	deleteUserPassword = `DELETE FROM passwords WHERE name = $1 and user_id = $2`
+
+	getUserKey = `SELECT key FROM keys WHERE user_id = $1 LIMIT 1`
+
+	saveUserKey = `INSERT INTO keys (user_id, key) VALUES ($1, $2)`
 )

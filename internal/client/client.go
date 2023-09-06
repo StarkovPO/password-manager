@@ -55,6 +55,7 @@ func NewUser(EncryptionKey []byte) *User {
 		EncryptionKey: EncryptionKey}
 }
 
+// SignUp this method is used to sign up
 func (u *User) SignUp(username, password string) (string, error) {
 	url := BaseURL + signUpEndpoint
 
@@ -87,6 +88,7 @@ func (u *User) SignUp(username, password string) (string, error) {
 	return "", errors.New("token is empty")
 }
 
+// Login this method is used to login
 func (u *User) Login(username, password string) (string, error) {
 	url := BaseURL + logInEndpoint
 
@@ -120,6 +122,7 @@ func (u *User) Login(username, password string) (string, error) {
 
 }
 
+// GetAllPass this method is used to get all names of passwords
 func (u *User) GetAllPass() ([]PasswordName, error) {
 	url := BaseURL + "/api/password/all"
 
@@ -156,6 +159,7 @@ func (u *User) GetAllPass() ([]PasswordName, error) {
 
 }
 
+// Request this method is constructor for requests to server
 func (u *User) Request(method, endpoint string, data interface{}) (interface{}, error) {
 	url := BaseURL + endpoint
 

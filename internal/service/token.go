@@ -12,6 +12,7 @@ type TokenClaims struct {
 	UserID string `json:"user_id"`
 }
 
+// NewToken create new token for user. Token contain the user id
 func NewToken(ID string) *jwt.Token {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		jwt.StandardClaims{

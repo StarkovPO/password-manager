@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// GenerateEncryptionKey generate encryption key for user
 func GenerateEncryptionKey() ([]byte, error) {
 	key := make([]byte, 32) // 256-bit key for AES-256
 	_, err := rand.Read(key)
@@ -24,6 +25,7 @@ func GenerateEncryptionKey() ([]byte, error) {
 	return key, nil
 }
 
+// Encrypt encrypt users passwords with using AES
 func Encrypt(plainText string, key []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -45,6 +47,7 @@ func Encrypt(plainText string, key []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(encryptedData), nil
 }
 
+// Decrypt decrypt users passwords with using AES
 func Decrypt(cipherText string, key []byte) (string, error) {
 	encryptedData, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
@@ -72,6 +75,7 @@ func Decrypt(cipherText string, key []byte) (string, error) {
 	return string(plainText), nil
 }
 
+// GetUserPath get user's path at local PC
 func GetUserPath() (string, error) {
 	keyFilePath := ""
 	homeDir, err := os.UserHomeDir()
@@ -98,6 +102,7 @@ func GetUserPath() (string, error) {
 	return keyFilePath, nil
 }
 
+// checkDirAndCreate check if directory exist
 func checkDirAndCreate(path string) bool {
 
 	p := strings.TrimSuffix(path, "/encryption.json")
@@ -115,6 +120,7 @@ func checkDirAndCreate(path string) bool {
 	return true
 }
 
+// SaveEncryptedKey save encryption key
 func SaveEncryptedKey(userID string, key []byte) error {
 
 	f, err := GetUserPath()
@@ -135,6 +141,7 @@ func SaveEncryptedKey(userID string, key []byte) error {
 	return nil
 }
 
+// ReadEncryptedKey read encryption key
 func ReadEncryptedKey() (map[string]string, error) {
 	UserKeys := make(map[string]string)
 	f, err := GetUserPath()

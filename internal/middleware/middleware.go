@@ -9,14 +9,17 @@ import (
 	"strings"
 )
 
+// Middleware struct for the middleware
 type Middleware struct {
 	c config.Config
 }
 
+// NewMiddleware create new middleware
 func NewMiddleware(c *config.Config) *Middleware {
 	return &Middleware{c: *c}
 }
 
+// SetJSONResponse set json response for all routers
 func (m *Middleware) SetJSONResponse(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if t := w.Header().Get("Content-Type"); t != "application/json" {
@@ -26,6 +29,7 @@ func (m *Middleware) SetJSONResponse(next http.Handler) http.Handler {
 	})
 }
 
+// CheckToken check token and auth header. Return the user id
 func (m *Middleware) CheckToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

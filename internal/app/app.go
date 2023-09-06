@@ -31,16 +31,21 @@ const (
 	DefaultTimeOut = 15 * time.Second
 )
 
+// App struct contain all required modules
 type App struct {
 	Conf   *config.Config
 	Router *mux.Router
 	DB     *sqlx.DB
 }
 
+// NewApp create new app
 func NewApp(c *config.Config) *App {
 	return &App{Conf: c}
 }
 
+/*
+Start contain all start up function	for app
+*/
 func Start() error {
 	c := config.NewConfig()
 	c.Init()
@@ -67,6 +72,10 @@ func Start() error {
 	return nil
 }
 
+/*
+RegisterRouters this function used for register routers
+used mux libary for create router
+*/
 func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router = mux.NewRouter()
 	a.Router.Use(m.SetJSONResponse, m.CheckToken)
@@ -81,6 +90,8 @@ func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	//user handlers
 	a.Router.HandleFunc("/api/user", handler.RegisterUser(s)).Methods(http.MethodPost)
 	a.Router.HandleFunc("/api/login", handler.LoginUser(s)).Methods(http.MethodPost)
+	a.Router.HandleFunc("/api/user/key", handler.GetUserKey(s)).Methods(http.MethodGet)
+	a.Router.HandleFunc("/api/user/key", handler.SaveUserKey(s)).Methods(http.MethodPost)
 
 	//password handlers
 	a.Router.HandleFunc("/api/password", handler.SaveUserPassword(s)).Methods(http.MethodPost)
@@ -90,6 +101,13 @@ func (a *App) RegisterRouters(s *service.Service, m *middleware.Middleware) {
 	a.Router.HandleFunc("/api/password/{name}", handler.DeleteUserSavedPassword(s)).Methods(http.MethodDelete)
 }
 
+/*
+	RunServer this function used for run server
+
+Firtly, we create a listener and server.
+Register routers and start server in TLS mode.
+Also supported gracefull shoutdown
+*/
 func (a *App) RunServer() error {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
@@ -138,6 +156,10 @@ func (a *App) RunServer() error {
 	return nil
 }
 
+/*
+MustPostgresConnection this function used for connect to postgres
+with already set params for connection
+*/
 func (a *App) MustPostgresConnection() {
 	db, err := sqlx.Open("postgres", a.Conf.DatabaseURIValue)
 	if err != nil {

@@ -10,6 +10,7 @@ const (
 	SecretForPasswordKey    = "PASSWORD_SECRET"
 )
 
+// Config struct contain all data and secrets for application
 type Config struct {
 	RunAddressValue           string
 	DatabaseURIValue          string
@@ -18,10 +19,12 @@ type Config struct {
 	PasswordSecretValue       string
 }
 
+// NewConfig create new config
 func NewConfig() *Config {
 	return &Config{}
 }
 
+// Init initialize config from env
 func (c *Config) Init() {
 	c.RunAddressValue = os.Getenv(RunAddressKey)
 	c.DatabaseURIValue = os.Getenv(DatabaseURIKey)

@@ -2,13 +2,13 @@
 package main
 
 import (
-	"client-password/internal/api"
-	cipher_client "client-password/internal/cipher"
-	"client-password/internal/client"
-	"client-password/internal/scheduler"
 	"context"
 	"fmt"
 	"golang.org/x/sync/errgroup"
+	"password-manager/internal/api"
+	cipher_client "password-manager/internal/cipher"
+	"password-manager/internal/client"
+	"password-manager/internal/scheduler"
 )
 
 var buildVersion string
@@ -38,7 +38,14 @@ func main() {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		return scheduler.UserTokenScheduler(ctx, User)
+		s, err := scheduler.UserTokenServerSheduler(ctx, User)
+
+		if s != "success" {
+			err = scheduler.SaveUserKey(User)
+			fmt.Println(err)
+			return scheduler.UserTokenScheduler(ctx, User)
+		}
+		return err
 	})
 
 	fmt.Println("Interactive client started. Enter 'q' to exit. \n " +

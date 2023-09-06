@@ -2,11 +2,11 @@ package api
 
 import (
 	"bufio"
-	cipher_client "client-password/internal/cipher"
-	"client-password/internal/client"
 	"fmt"
 	"net/http"
 	"os"
+	cipher_client "password-manager/internal/cipher"
+	"password-manager/internal/client"
 	"strings"
 )
 

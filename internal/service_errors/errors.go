@@ -19,12 +19,16 @@ var (
 	ErrNameAlreadyExist    = NewAppError(nil, "The current name already exist in your walt, choose another", "Duplicate password name")
 )
 
+/*
+AppError struct for custom errors
+*/
 type AppError struct {
 	Err    error  `json:"-"`
 	Msg    string `json:"msg"`
 	DevMsg string `json:"dev_msg"`
 }
 
+// NewAppError create new app error
 func NewAppError(err error, msg, devMsg string) *AppError {
 	logrus.Errorf("Error: %v", devMsg)
 	return &AppError{
@@ -48,6 +52,7 @@ func (e *AppError) Marshal() []byte {
 	return marshal
 }
 
+// HandleError handle error from app
 func HandleError(w http.ResponseWriter, err error) {
 	w.Header().Add("Content-Type", "application/json")
 	switch {
